@@ -254,6 +254,7 @@ def main():
 	desired_width = args.width
 	image = seperate_image(path, desired_width)
 
+	# Append generations to output depending on args
 	outstr = ''
 	if args.blockify:
 		outstr += '\n'
@@ -279,6 +280,7 @@ def main():
 		outstr += '\n'
 		outstr += preprocess_braillify(path, desired_width)
 
+	# Save or display output
 	if args.o is not None:
 		with open(args.o, 'w+') as f:
 			f.write(outstr)

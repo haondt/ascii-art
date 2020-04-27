@@ -6,3 +6,5 @@ unicode braille symbols. Results may look slightly different when using a
 different font. Does not work on pngs.
 
 Usage: `python main.py -h`
+
+Requirements: 'scikit-imag', 'numpy', 'Pillow'
