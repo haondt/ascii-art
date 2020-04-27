@@ -35,6 +35,7 @@ def seperate_image(path, desired_width, ratio=2):
 		image = np.tensordot(consts, image, (0,2))
 	
 
+	# group blocks of subpixels in pixel groups
 	input_rows_per_output_row = len(image)/desired_height
 	input_cols_per_output_col = len(image[0])/desired_width
 	output_matrix = []
@@ -113,10 +114,12 @@ def asciiify(im):
 			print(get_char(color), end='')
 		print('')
 
+# draw the image using ascii characters. See _advanced_asciiify.
 def advanced_asciiify(image):
 	chars = [chr(i) for i in range(32,127)]
 	return _advanced_asciiify(image, 'Noto Mono for Powerline.ttf', chars)
 
+# draw the image using unicode braille symbols. See _advanced_asciiify.
 def braillify(image):
 	chars = '⠁⠂⠃⠄⠅⠆⠇⠈⠉⠊⠋⠌⠍⠎⠏⠐⠑⠒⠓⠔⠕⠖⠗⠘⠙⠚⠛⠜⠝⠞⠟⠠⠡⠢⠣⠤⠥⠦⠧⠨⠩⠪⠫⠬⠭⠮⠯⠰⠱⠲⠳⠴⠵⠶⠷⠸⠹⠺⠻⠼⠽⠾⠿⡀⡁⡂'
 	chars += '⡃⡄⡅⡆⡇⡈⡉⡊⡋⡌⡍⡎⡏⡐⡑⡒⡓⡔⡕⡖⡗⡘⡙⡚⡛⡜⡝⡞⡟⡠⡡⡢⡣⡤⡥⡦⡧⡨⡩⡪⡫⡬⡭⡮⡯⡰⡱⡲⡳⡴⡵⡶⡷⡸⡹⡺⡻⡼⡽⡾⡿⢀⢁⢂⢃'
@@ -126,9 +129,14 @@ def braillify(image):
 
 	return _advanced_asciiify(image, 'Symbola.ttf', chars)
 
+# draw the image using the given characters. Find the best character to
+# represent a given pixel by comparing each pixel of the character with the
+# subpixels of the image pixel
 def _advanced_asciiify(image, fontname, char_list):
 	# Find the fontsize that will make the characters the same width as the
 	# pixels
+	# If you can't see this symbol, your viewer does not support powerline
+	# symbols. This is ok and will not alter the functionality of the program.
 	testchar = ''
 	test_fontname = 'Noto Mono for Powerline.ttf'
 	char_width = len(image[0][0][0])
@@ -154,12 +162,10 @@ def _advanced_asciiify(image, fontname, char_list):
 		arr = np.average(np.array(img),2) # average the colors to make grayscale
 		chars.append((arr, char))
 
-	total_pixels = len(image)*len(image[0])
-	current_pixel = 0
 
+	# Find the best matching symbol for each pixel
 	for row in image:
 		for col in row:
-			current_pixel += 1
 			best_score = None
 			best_char = None
 			for char in chars:
@@ -173,13 +179,18 @@ def _advanced_asciiify(image, fontname, char_list):
 			print(best_char[1], end='')
 		print('')
 
+# Compare two images of the same shape
 def compare(img1, img2):
 	diff = img1-img2
 	squares = np.square(diff)
 	s = np.sum(squares)
 	mse = s / img1.size
+
+	# multiplying the mean square error by -1 will invert the output
 	return -mse
 
+# use pillow to change the input image to black and white pixels only before
+# processing
 def preprocess_image(path):
 	# load image into ndarray
 	image = Image.open(path)
@@ -188,12 +199,14 @@ def preprocess_image(path):
 	image.save('tmp.jpg')
 
 
+# preprocess the image before calling advanced_asciiify
 def preprocess_advanced_asciiify(path, desired_width):
 	preprocess_image(path)
 	path = 'tmp.jpg'
 	image = seperate_image(path, desired_width)
 	advanced_asciiify(image)
 
+# preprocess the image before calling braillify
 def preprocess_braillify(path, desired_width):
 	preprocess_image(path)
 	path = 'tmp.jpg'
