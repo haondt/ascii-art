@@ -309,7 +309,6 @@ def _advanced_asciiify(image, fontname, char_list):
 			outstr += best_char[1]
 		outstr += '\n'
 	return outstr
-
 # Compare two images of the same shape
 def compare(img1, img2):
 	diff = img1-img2
