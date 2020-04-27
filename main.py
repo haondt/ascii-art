@@ -115,7 +115,7 @@ def asciiify(im):
 	for row in im:
 		for col in row:
 			# average subpixels
-			color = np.sum(col)/col.size
+			color = np.sum(col)/np.array(col).size
 			outstr += get_char(color)
 		outstr += '\n'
 	return outstr
