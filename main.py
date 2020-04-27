@@ -1,4 +1,5 @@
 import numpy as np
+import json
 from skimage import io
 from PIL import Image, ImageDraw, ImageFont
 from PIL import ImageEnhance
@@ -34,7 +35,6 @@ def seperate_image(path, desired_width, ratio=2):
 
 		# grayscaleify each pixel
 		image = np.tensordot(consts, image, (0,2))
-	
 
 	# group blocks of subpixels in pixel groups
 	input_rows_per_output_row = len(image)/desired_height
@@ -76,7 +76,7 @@ def blockify(image):
 	for row in image:
 		for col in row:
 			# average subpixels
-			color = np.sum(col)/col.size
+			color = np.sum(col)/np.array(col).size
 			outstr += get_char(color)
 		outstr += '\n'
 	outstr += reset
@@ -118,11 +118,74 @@ def asciiify(im):
 			color = np.sum(col)/col.size
 			outstr += get_char(color)
 		outstr += '\n'
+	return outstr
 
 # draw the image using ascii characters. See _advanced_asciiify.
 def advanced_asciiify(image):
 	chars = [chr(i) for i in range(32,127)]
 	return _advanced_asciiify(image, 'Noto Mono for Powerline.ttf', chars)
+
+# create a binary search tree of braille characters
+def load_braille_dict():
+	try:
+		with open('bd.json', 'r') as f:
+			return json.loads(f.read())
+	except:
+		chars = '⠁⠂⠃⠄⠅⠆⠇⠈⠉⠊⠋⠌⠍⠎⠏⠐⠑⠒⠓⠔⠕⠖⠗⠘⠙⠚⠛⠜⠝⠞⠟⠠⠡⠢⠣⠤⠥⠦⠧⠨⠩⠪⠫⠬⠭⠮⠯⠰⠱⠲⠳⠴⠵⠶⠷⠸⠹⠺⠻⠼⠽⠾⠿⡀⡁⡂'
+		chars += '⡃⡄⡅⡆⡇⡈⡉⡊⡋⡌⡍⡎⡏⡐⡑⡒⡓⡔⡕⡖⡗⡘⡙⡚⡛⡜⡝⡞⡟⡠⡡⡢⡣⡤⡥⡦⡧⡨⡩⡪⡫⡬⡭⡮⡯⡰⡱⡲⡳⡴⡵⡶⡷⡸⡹⡺⡻⡼⡽⡾⡿⢀⢁⢂⢃'
+		chars += '⢄⢅⢆⢇⢈⢉⢊⢋⢌⢍⢎⢏⢐⢑⢒⢓⢔⢕⢖⢗⢘⢙⢚⢛⢜⢝⢞⢟⢠⢡⢢⢣⢤⢥⢦⢧⢨⢩⢪⢫⢬⢭⢮⢯⢰⢱⢲⢳⢴⢵⢶⢷⢸⢹⢺⢻⢼⢽⢾⢿⣀⣁⣂⣃⣄'
+		chars += '⣅⣆⣇⣈⣉⣊⣋⣌⣍⣎⣏⣐⣑⣒⣓⣔⣕⣖⣗⣘⣙⣚⣛⣜⣝⣞⣟⣠⣡⣢⣣⣤⣥⣦⣧⣨⣩⣪⣫⣬⣭⣮⣯⣰⣱⣲⣳⣴⣵⣶⣷⣸⣹⣺⣻⣼⣽⣾⣿'
+		chars += ' '
+
+
+		braille_chars = '⠁⠈⠂⠐⠄⠠⡀⢀'
+
+		braille_imgs = []
+		fontname = 'Symbola.ttf'
+		fnt = ImageFont.truetype(fontname, 14)
+		for char in braille_chars:
+			img = Image.new('RGB', (30,30), color='white')
+			d = ImageDraw.Draw(img)
+			d.text((0,0), char, font=fnt, fill='black')
+			arr = np.average(np.array(img),2) # average the colors to make grayscale
+			braille_imgs.append(arr)
+		
+
+		output = {}
+		for char in chars:
+			direction  = []
+			img = Image.new('RGB', (30,30), color='white')
+			d = ImageDraw.Draw(img)
+			d.text((0,0), char, font=fnt, fill='black')
+			arr = np.average(np.array(img),2) # average the colors to make grayscale
+			for bi in braille_imgs:
+				match = False
+				for row_i in range(len(arr)):
+					for col_i in range(len(arr[0])):
+						if bi[row_i][col_i] < 100:
+							if arr[row_i][col_i] < 100:
+								match = True
+								break
+					if match:
+						break
+				if match:
+					direction.append('1')
+				else:
+					direction.append('0')
+
+			spot = output
+			for i in direction[:-1]:
+				if i not in spot:
+					spot[i] = {}
+				spot = spot[i]
+			spot[direction[-1]] = char
+		
+		with open('bd.json', 'w') as f:
+			f.write(json.dumps(output))
+		return output
+
+
+
 
 # draw the image using unicode braille symbols. See _advanced_asciiify.
 def braillify(image):
@@ -132,7 +195,68 @@ def braillify(image):
 	chars += '⣅⣆⣇⣈⣉⣊⣋⣌⣍⣎⣏⣐⣑⣒⣓⣔⣕⣖⣗⣘⣙⣚⣛⣜⣝⣞⣟⣠⣡⣢⣣⣤⣥⣦⣧⣨⣩⣪⣫⣬⣭⣮⣯⣰⣱⣲⣳⣴⣵⣶⣷⣸⣹⣺⣻⣼⣽⣾⣿'
 	chars += ' '
 
+
+
 	return _advanced_asciiify(image, 'Symbola.ttf', chars)
+
+# braillify image using much faster algorithm. Compare pixel to 8 single-point
+# braille characters and use a binary search tree to select character instead of
+# testing all 256 characters.
+def fast_braillify(image):
+	# Find the fontsize that will make the characters the same width as the
+	# pixels
+	# If you can't see this symbol, your viewer does not support powerline
+	# symbols. This is ok and will not alter the functionality of the program.
+	testchar = ''
+	test_fontname = 'Noto Mono for Powerline.ttf'
+	char_width = len(image[0][0][0])
+	char_height = len(image[0][0])
+	fontsize = 0
+	for i in range(1,72):
+		img = Image.new('RGB', (char_width, char_height), color='white')
+		d = ImageDraw.Draw(img)
+		fnt = ImageFont.truetype(test_fontname, i)
+		d.text((0,0), testchar, font=fnt, fill='black')
+		arr = np.array(img)
+		if sum(arr[0][-1]) < 200:
+			fontsize = i
+			break
+
+	braille_dict = load_braille_dict()
+	braille_chars = ' ⠁⠈⠂⠐⠄⠠⡀⢀'
+
+	braille_imgs = []
+	fontname = 'Symbola.ttf'
+	fnt = ImageFont.truetype(fontname, fontsize)
+	for char in braille_chars:
+		img = Image.new('RGB', (char_width, char_height), color='white')
+		d = ImageDraw.Draw(img)
+		d.text((0,0), char, font=fnt, fill='black')
+		arr = np.average(np.array(img),2) # average the colors to make grayscale
+		braille_imgs.append(arr)
+
+	outstr = ''
+	for row in image:
+		for col in row:
+			direction = ''
+			base_score = compare(braille_imgs[0],col)
+			for img in braille_imgs[1:]:
+				charscore = compare(img, col)
+				if charscore < base_score:
+					direction += '1'
+				else:
+					direction += '0'
+			outstr += braille_dict \
+				[direction[0]] \
+				[direction[1]] \
+				[direction[2]] \
+				[direction[3]] \
+				[direction[4]] \
+				[direction[5]] \
+				[direction[6]] \
+				[direction[7]]
+		outstr += '\n'
+	return outstr
 
 # draw the image using the given characters. Find the best character to
 # represent a given pixel by comparing each pixel of the character with the
@@ -207,7 +331,7 @@ def preprocess_image(path):
 
 
 # preprocess the image before calling advanced_asciiify
-def preprocess_advanced_asciiify(path, desired_width):
+def preprocess_asciiify(path, desired_width):
 	preprocess_image(path)
 	path = 'tmp.jpg'
 	image = seperate_image(path, desired_width)
@@ -218,7 +342,7 @@ def preprocess_braillify(path, desired_width):
 	preprocess_image(path)
 	path = 'tmp.jpg'
 	image = seperate_image(path, desired_width)
-	return braillify(image)
+	return fast_braillify(image)
 
 
 def main():
@@ -270,7 +394,7 @@ def main():
 	
 	if args.braillify:
 		outstr += '\n'
-		outstr += braillify(image)
+		outstr += fast_braillify(image)
 
 	if args.preprocessed_asciiify:
 		outstr += '\n'
