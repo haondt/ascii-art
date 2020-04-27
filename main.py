@@ -2,6 +2,7 @@ import numpy as np
 from skimage import io
 from PIL import Image, ImageDraw, ImageFont
 from PIL import ImageEnhance
+import argparse
 
 # Terminology:
 # The program converts an nxm image to various ascii art forms of size axb.
@@ -71,13 +72,16 @@ def blockify(image):
 	get_char = lambda x: esc + '38;5;{}m'.format(color_scale(x)) + char
 
 	# Go through each pixel of image
+	outstr = ''
 	for row in image:
 		for col in row:
 			# average subpixels
 			color = np.sum(col)/col.size
-			print(get_char(color), end='')
-		print('')
-	print(reset)
+			outstr += get_char(color)
+		outstr += '\n'
+	outstr += reset
+	
+	return outstr
 	
 # draw the image using ascii characters. Simply finds the ascii character with
 # the closest average brightness
@@ -107,12 +111,13 @@ def asciiify(im):
 	get_char = lambda x: charset[min(charset.keys(), key=lambda y: abs(y-color_scale(x)))]
 
 	# go through each pixel of image
+	outstr = ''
 	for row in im:
 		for col in row:
 			# average subpixels
 			color = np.sum(col)/col.size
-			print(get_char(color), end='')
-		print('')
+			outstr += get_char(color)
+		outstr += '\n'
 
 # draw the image using ascii characters. See _advanced_asciiify.
 def advanced_asciiify(image):
@@ -164,6 +169,7 @@ def _advanced_asciiify(image, fontname, char_list):
 
 
 	# Find the best matching symbol for each pixel
+	outstr = ''
 	for row in image:
 		for col in row:
 			best_score = None
@@ -176,8 +182,9 @@ def _advanced_asciiify(image, fontname, char_list):
 				elif score < best_score:
 					best_score = score
 					best_char = char
-			print(best_char[1], end='')
-		print('')
+			outstr += best_char[1]
+		outstr += '\n'
+	return outstr
 
 # Compare two images of the same shape
 def compare(img1, img2):
@@ -204,31 +211,79 @@ def preprocess_advanced_asciiify(path, desired_width):
 	preprocess_image(path)
 	path = 'tmp.jpg'
 	image = seperate_image(path, desired_width)
-	advanced_asciiify(image)
+	return advanced_asciiify(image)
 
 # preprocess the image before calling braillify
 def preprocess_braillify(path, desired_width):
 	preprocess_image(path)
 	path = 'tmp.jpg'
-	image = seperate_image(path, desired_width, 1.6)
-	braillify(image)
+	image = seperate_image(path, desired_width)
+	return braillify(image)
+
 
 def main():
-	path = '/home/noah/Pictures/flower.jpg'
-	desired_width = 130
 
+	# Set up command line parser
+	parser = argparse.ArgumentParser(description='Convert images to ascii art')
+	parser.add_argument('-i',metavar='input.jpg', type=str, required=True,
+		help='source image file')
+	parser.add_argument('-o',nargs='?', metavar='output.txt', type=str,
+		help='output txt file')
+	parser.add_argument('-w', '--width',nargs='?', metavar='W', type=int, default=130,
+		help='output image width')
+	parser.add_argument('-k', '--blockify', action='store_true', default=False,
+		help='generate the image using the block symbol and ansi escape codes')
+	parser.add_argument('-a', '--asciiify', action='store_true', default=False,
+		help='generate the image using ascii symbols')
+	parser.add_argument('-A', '--advanced-asciiify', action='store_true',
+		default=False, help='generate the image using ascii symbols, and a \
+		refined method')
+	parser.add_argument('-b', '--braillify', action='store_true',
+		default=False, help='generate the image using unicode braille symbols')
+	parser.add_argument('-p', '--preprocessed-asciiify', action='store_true',
+		default=False, help='preprocess the image before asciiifying it with a \
+		refined method')
+	parser.add_argument('-P', '--preprocessed-braillify', action='store_true',
+		default=False, help='preprocess the image before braillifying it with \
+		a refined method')
+
+	args = parser.parse_args()
+	
+	# pull info from parser
+	path = args.i
+	desired_width = args.width
 	image = seperate_image(path, desired_width)
 
-	blockify(image)
-	asciiify(image)
-	advanced_asciiify(image)
+	outstr = ''
+	if args.blockify:
+		outstr += '\n'
+		outstr += blockify(image)
 
-	braillify(image)
-	preprocess_advanced_asciiify(path, desired_width)
-	preprocess_braillify(path, desired_width)
+	if args.asciiify:
+		outstr += '\n'
+		outstr += asciiify(image)
 
+	if args.advanced_asciiify:
+		outstr += '\n'
+		outstr += advanced_asciiify(image)
+	
+	if args.braillify:
+		outstr += '\n'
+		outstr += braillify(image)
 
+	if args.preprocessed_asciiify:
+		outstr += '\n'
+		outstr += preprocess_asciiify(path, desired_width)
 
+	if args.preprocessed_braillify:
+		outstr += '\n'
+		outstr += preprocess_braillify(path, desired_width)
+
+	if args.o is not None:
+		with open(args.o, 'w+') as f:
+			f.write(outstr)
+	else:
+		print(outstr)
 
 if __name__ == '__main__':
 	main()
