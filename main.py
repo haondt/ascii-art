@@ -311,6 +311,15 @@ def _advanced_asciiify(image, fontname, char_list):
 	return outstr
 # Compare two images of the same shape
 def compare(img1, img2):
+	if len(img1) > len(img2):
+		img1 = img1[:len(img2)]
+	if len(img2) > len(img1):
+		img2 = img2[:len(img1)]
+	if len(img1[0]) > len(img2[0]):
+		img1 = [i[:len(img2[0])] for i in img1]
+	if len(img2[0]) > len(img1[0]):
+		img2 = [i[:len(img1[0])] for i in img2]
+
 	diff = img1-img2
 	squares = np.square(diff)
 	s = np.sum(squares)

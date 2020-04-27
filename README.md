@@ -44,7 +44,6 @@ the average brightness of all the pixels in the chunk. This strategy works
 fairly well, but lines and edges in the image can be made cleaner.
 
 ```
-
 __~__~~~~~~__~_____~_~~~____~;_____~__~;~~__"""""""""""""""""""""+++++++^^+++"""""""+""""""++"""""""
 __~~~~___________"_~__~~~~__~~~~;~___;;;;;~~____"_"_""""""""""""""""""++++++++""""""""""""_"""_""_""
 ____~_____"____________;;~;;;~~;;;;;;;;;;-;;;;;;~_____"__"_______""""""""+""""""""""""""""""""++^++"
@@ -109,4 +108,158 @@ r";------::::::-:::::::::...-_"=+eZlc^r=F_::::::::::::::::::::-----;;;;;;;;;;"1?
 :::::---------::::::-;+=rrr"-::::::.........::::-:::::::::::-------;_rrccizzzzivi}vi(c1|+""";;~~__~;
 -::::::----::::--::;"=r1r"-:::::...........::.::::::.:.:::::.:::::;+|?ic((zcvccccc1=r1="_+";~;-;;~~;
 -:::.:::::::-::-:-_=rr=~::-::....``..`````........::......``````._rr11|r(1(|r^rrr1=^++"~~1r=+"r=r1|_
+```
+
+### Strategy 3: Advanced Asciify
+
+Following in the footsteps of asciiify, I figured I could do better by looking
+at what the characters actually look like, instead of just their average
+brightness. The third strategy is identical to asciiify, but when comparing the
+character image to the chunk, I check the difference in brightness between every
+individual pixel, and score the character based on its mean square error. This
+method does give much cleaner edges but at the cost of more time and a
+drastically higher contrast in the final product, leaving background details
+left out.
+
+```
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                ,-                  _,,-.__                                         
+                                                 _F `     __._    __                                
+                                               _B     _=_  ____     "-_                             
+                                              _B    _4_       _   `     .                           
+                                              _ ___B' _____ggBBBBBB__    '                          
+                                            __B___F  _BBBB"IB_g_____ 4"=_                           
+                                     ____  _H_B___ __ IF_="_BBBB=___  ._ "_                         
+                                   _ZBBB___ _I____B_BBB_____  ==DBBBBB__ __                         
+                                   _BIIIBBBBBBBBBBBBBBBBBBB_____ "  =FB_"'=_"&_                     
+                                ___FBIBBBBBBBBBBBBBBBBBBBBBB_BII_ =______B_  "_                     
+                         __    __BBBBggBBBBBBBBBBBBBBBBBBBBBBBBB______ _IBBBB_ \                    
+                       _g#  _HBgBBBBBBBBBBBBBBBBBBBBBBBBBgBBBBBgIB__z_I_IBBIBB__'                   
+                     _=I' =_F_gBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB_B_II__I__BBB_ T_                 
+                          _=BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB_BB____BBBB_B_I                 
+               ____     _F_gBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB_B_BI___BBBBBBI_                 
+            _a"          4BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB_BBBBFBBBgBBBB \                
+           I`        _   F "`  "BBBBBBBBBBBBBBBBB""""BBBBBBBBBBBBBBBBBBBBBBBBBBI__I                 
+                _   '_  z   ___BBBBBBBBBBBBBBBBgggB_____g_gBBBBBBBBBBBBBB_BBBBBBB_ `                
+              ,    _gF  =_gBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBIBBBBBB=_                  
+              I '   I_  ]BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBABBBBBBBBBBBBBBBBBg___                
+                       _BBBB=F_-IBg_IBBBBBBBBBBBBB__-___"BBBBBB_BBBBBBBBBBBBBBBBBBBB=   =__         
+                    _  ]BBF ___Z IBB_ IBBBBBBBBBBF` _*#BB__BBBBIBBBBBBBBBBBBBBBBBBBB_  _ _ "=.      
+             _     _F  _BI_HBF   _g,I _BBBBBBgg___BB ,  _ BBBBBBBBBBBBBBBBBBBBBBBB__BB__I='_        
+             I     I   __B ,Bk__gZ_g' BBBBBBBBB_TTBB   _F_&BBBBBBBBBBBBBBBBBBBBBBBFF_ =___          
+                        F___ ___BBB"  BBBBBBBBB__B_________BIIBBBBBBBBBBBBBBBB__FBBB_=I '_          
+                      I_ IBIBBBBBBr  BBBBBBBBBBBBggIBBBBBBFIBBBBBBBBBBBBBBBFI_BF_  "I_=I_ B_        
+                      _BBgBBBBBBBB  _BBBB_BBBBBBBBBBBBBBBBBBgBBBB__BB]IIIHBI_  BBB_L  =_BI_I__      
+                      ZBBBBBBBBBB' gBBBBBI_IBBgBBBBBBBBBBBBBBBBBBBBBBIBI   ]' gBBB_ __=_IBBBB=__    
+                      BBBBBBBBBB# gBBBBBBBB_I_BBBBBBBBBBBBBBBBBBBBIB_IF_  __BBBBBBB_IB DgBBBB_IBL   
+                      BBBBBBBBBB  BBBBBBBBB_Bg_BBBBBBBBBBBBBBBBBBB_____   IBBBBBBBgBgBB ABBBBB_HB,  
+                      BBBBBBBBB   `BBBBBBBBBBBB_BBBBBBBBBBBBBBBBBB__B___   _BBBBBgBBBBB__BBBBB_ BI] 
+                      4BBBBBBBBL_   T"TF_ggggI_gBBBBBBBBBBBBBBB]BBI _____ gBBBBBBB&gBBBBgBBBBB  B   
+             -        BB=BBBBBBgBDgBggBB_BBBBBBBBBBBBBBBBBBBBBBBBB__II___ BBBBBF_BBBBBB_BBBBHH _B   
+                      BB BBBBBBIBBBBBBBBBBBBBBBBBgBBB&BBBBBBBBBBBB  FI__ qBBBB _B#F_F]BBBBBB__4F    
+                      ]B_]FFBBBBBBBBBBBBBBBBBBBBBBBBDBBBBBBBBBBBBF  _BB_ #BBBF= . IBBBBB  B"`       
+                       BIBB_' 'IBBHBBBBFTBBHBBBBBBBBBBBBBBBBBBBBB_ __B_    "        `'`             
+                       IE'Bg_                F `"" 'IBBBBBBBBBBBBI _BB=                             
+                        B_TBBBg_  _________BB__    __4BBBBBBBBBBB__BBB                              
+                        IB_BBBBB  _BIBIIBBB_BB'  __ggBB_BBBBBBBBB_BBB'                              
+                         TB_BBBB IggBgTEBI__BE _=__BBBBBBBBBBBBBFgBF                                
+                          "B_BBB  BBBBB_BI_BB   _gBBBBBBBBBBBBBFgP                                  
+                           "&TBBL BBBBFII _g_  _BBBgBBBBBBgBBBF'                                    
+                            TLBBE  BBB_BB_]B ]gBBBBBBBBBBBBBB'                                      
+                             " BB_ "BBBB_BI _gBBBBBBBBBBDBB"                                 _      
+                                BB_  B_BBF gBBBBBBBBBBBB#`                                          
+                                  BL     _BBBBBBBBBBBB"                                             
+                                   TBaagBBBBBBBBBBBP                                     ._         
+                                     THBBBBBBBBBP`                                     __'          
+                                           '                                          , '           
+                                  gBg__  "B"                                       ,  _             
+                                 g#"    #                                                           
+                                a                                             _ .                   
+                               ,                                                  _                 
+                                                                               .                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                            ` ' "^` 
+```
+
+### Strategy 4: Preprocessing + Advanced Asciiify
+
+I thought perhaps I could reduce the amount of contrast caused by strategy 3 by
+running some preprocessing on the image with Pillow. Strategy 4 is to first
+convert the image to only black and white pixels, and then run strategy 3. Both
+steps are shown below.
+
+![](sample/preprocessed.jpg)
+
+```
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                ,+                 ____g,__                                         
+                              ,`               .ggP"``    __,__" +,_                                
+                                               qM.    gg________.  `*u_                             
+                                              $M(  _B&I/.`P`  _ ` "L   '.                           
+                                          .  qBiT&BMTHMWgC_ggBMMMMBp]    "                          
+                                       .    g]MM&MPA_gMMMMBBMMMMMBgg &Bq_                           
+                                   wgggggJ*gBHM&BB_gg&BM%#PgMMMMMMQ_BH&_x*L                         
+                                  _&MMMMB&WMMMMMMgMMMMMMMggJ&M&BMMMMMMBPQ__"_                       
+                                 +ggMMMMMMMMMMMMMMMMMMMMMMMMM&ggMPPPMBMMQB&g*B_ `                   
+                                _gMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMBMgBgMMMBg `R_\                    
+                        __gF  gMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMwg&MMMMM&_ &                    
+                       _g# _yMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMg_Aa                  
+                    .gAM" 42MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMg"M[                 
+                    ' d ,`]&MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM&]$"                
+              `_ygB-` ` _P_MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMB_                 
+            _p*          &BMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMB]\                
+           I`        B J'#**` _"BMMMMMMMMMMMMMMMHP***MMMMMMMMMMMMMMMMMMMMMMMMMMMMM&'                
+          ]    FN   &g  #   __MMMMMMMMMMMMMMMMMMMMMg__ggggMMMMMMMMMMMMMMMMMMMMMMMMRT.               
+         J`  ,]qj  ,gB  MB&MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMgQgg_.             
+         '   flQT  IMg  MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMg_ 7X .           
+             ]J     M  IMMMMMMg&MMMMMMMMMMMMMMMMMMM&&ggZPMMMMMMMMMMMMMMMMMMMMMMMMMMM& _"&&_         
+             *L    Ag  gMMP`___ZNBMML BMMMMMMMMMMP" **MMMQgMMMMMMMMMMMMMMMMMMMMMMMMMMR#&]_ *+,      
+             J     &&  BM]_gMF   }BBB jMMMMMMMMMggM# ,  _NM&MMMMMMMMMMMMMMMMMMMMMMMMMMBqgbBL  `     
+             [     ML _MMBHbMg__gMQgF_MMMMMMMMM&M&MB   _MM&MMMMMMMMMMMMMMMMMMMMMMMMMMMMB&g`-`.      
+             D     V  '_FgBg,_MMMMM" jMMMMMMMMMMMBBggg_WMQMMMMMMMMMMMMMMMMMMMMMMMMMMMMMy*b3 `       
+                      B& BMMMMMMMMP  MMMMMMMMMMMMMMBMMMMMMMMMMMMMMMMMMMMMMMMMMMMg_'#MMMMgaMZ        
+           z          HMMMMMMMMMMM  BMMMMMMMMMMMMMMMMMMMMMMMMMMMMBMMMMMMMMMMMPQMMMJg_"RBMMBMML r    
+                 ]    BMMMMMMMMM&F_&MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM&DJMF"MMMMgH_,9_MMMMM&W]    
+                      MMMMMMMMMM#_MMMMMMMMMWMMMMMMMMMMMMMMMMMMMMMMMMMMMML B&&MMMMMM_TM MMMMMMgMM&   
+                      MMMMMMMMMM IMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMB}JBMMMMMMMMMMM& &MMMMMMMMLJ 
+                      BMMMMMMMM   *MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM&MMMMMFBNMMMMM&BMMMMgTMMMMBd*Ml] 
+                      BMMMMMMMMg__ 'MMMBBggggBBMMMMMMMMMMMMMMMM&MMMMMMBMMUgMMMMMMMMQMMMMgMMMMB ,MLr 
+             -. -`    MMMMMMMMBMMMMMgMMMBMMMMMMMMMMMMBMMMMMMMMMMMMM&MMMMM_MMMMMMBMMMMMM&MMMMBM JM*  
+                      MMBMMMMBMMMMMMMMMMMMMMMMMMMMMMMBBMMMMMMMMMMMMMMMMMBgMMMMBQB&PNMMBMMMMM]&&P    
+                      MMMMBRMMMMMMMMMMMMMMMMMMMMMMMMMMMBMMMMMMMMMMRgBMMB`MMMMB# . BMMMMB  B*F       
+                      `MMMM]hV]BMMMBMMMMBMBMMMMBMMMMMMMMMMMMMMMMMMBMMMMBp `*`       "*"   '         
+                       gMMMM_L    `  '   r'-PB}'MZ]RMMMMMMMMMMMMMM'&MMMM                            
+                       TMgMMMMg - BggBMggMgMM&g&   _&&M#MMMMMMMMMB,MMMM`                            
+                        BMLBMMMM &MMMMBBMMMMMMMF _&MMMMMMMMMMMMMMhMMMP                              
+                         MMLMMMM 4MMMMMMMMMMMB yMBMMMMMMMMMMMMMMP&MP                                
+                          NMHMMM  MMMMMMB&MBML BMMMMMMMMMMMMMMMBgP                                 '
+                           T&TMML MMMMMMMQNM# &HMMMMMMMMMMMMMMPf                                 _" 
+                            NLBMg TMMMBMM]MMFgMMMMMMMMMMMMMMM'                                    IL
+                             N MM_ *MMMMMMMPgMMMMMMMMMMMBMM*                               ,_],~.*  
+                              ' BBL NMMMMB`gMMMMMMMMMMMMM`                              __A#f' f    
+                                 'Mg "9MP_MMMMMMMMMMMB*                                 ,  Y _  .   
+                                   MMgggMMMMMMMMMMMP`                                   `I, -r-     
+                                    `MMMMMMMMMMMP"                                    ._j"'x `      
+                                         **P""`                                     g-z " ."        
+                                  gMg__ `*M*                                     _yJl L `, v        
+                                 gM*`   M                                        - ,H,_. ;  "       
+                                d                                             H_q, ,\ .             
+                               J                                            oH F} _kJ_',' '         
+                                                                           -,#/( t  = j-            
+                                                                          rJ "P , [.~,;,            
+                                                                         'T ,  = _=,                
+                                                                          `      "   '              
+                                                                                         ~  ` ' "^` 
 ```
