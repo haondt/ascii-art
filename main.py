@@ -20,7 +20,6 @@ def seperate_image(path, desired_width, ratio=2):
 	# load image into ndarray
 	image = io.imread(path)
 
-
 	# actual image height/width
 	height_over_width = len(image)/len(image[0])
 

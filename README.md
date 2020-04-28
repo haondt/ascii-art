@@ -25,9 +25,9 @@ The described strategies will be exemplified on this image of Albert Einstein.
 This was my first strategy, meant to act as a quick test to verify the algorithm
 for breaking the image into chunks was working correctly. This strategy is to
 convert the image pixels to grayscale, using a 0.2125/0.7154/0.0721 multiplier
-for each of the rgb values. From there we just average all the values in the
-chunk and scale that to a gray value from the 256 available ones in the
-terminal. Using ansi escape codes, we can then print it out.
+for each of the rgb values and summing them. From there we just average all the
+values in the chunk and scale that to a gray value from the 256 available ones
+in the terminal. Using ansi escape codes, we can then print it out.
 
 ![](sample/blockify.jpg)
 
@@ -41,7 +41,9 @@ way as the first, then creates an image of each ascii character (A-Za-z and some
 punctuation) that is the same size as each chunk. It then averages the
 brightness of all the pixels in the character image and finds the one closest to
 the average brightness of all the pixels in the chunk. This strategy works
-fairly well, but lines and edges in the image can be made cleaner.
+fairly well. Since it is based on the average brightness of the character, if
+you blur the image a bit, by squinting your eyes and moving further back for
+example, this becomes the most photo-realistic strategy, next to blockify.
 
 ```
 O%R%%RRRRRR%%R%OO%%R%RRR%%%%RR%%%%%R%%RRRR%%OOOOOgggggggdgdgOggddGwGGwGwPPwwGdgdddddGddddddGGdddggdd
@@ -118,8 +120,8 @@ brightness. The third strategy is identical to asciiify, but when comparing the
 character image to the chunk, I check the difference in brightness between every
 individual pixel, and score the character based on its mean square error. This
 method does give much cleaner edges but at the cost of more time and a
-drastically higher contrast in the final product, leaving background details
-left out.
+drastically higher contrast in the final product, which loses most background
+details.
 
 ```
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -192,8 +194,9 @@ left out.
 
 I thought perhaps I could reduce the amount of contrast caused by strategy 3 by
 running some preprocessing on the image with Pillow. Strategy 4 is to first
-convert the image to only black and white pixels, and then run strategy 3. Both
-steps are shown below.
+convert the image to only black and white pixels, and then run strategy 3. This
+had the opposite effect of raising the contrast even higher and making the edges
+even sharper. Both steps are shown below.
 
 ![](sample/preprocessed.jpg)
 
@@ -271,15 +274,15 @@ strategy 3, the result is an even sharper, but higher contrast image. A lot of
 detail ends up getting lost. On black and white images, such as monochromatic
 clipart, this is essentially perfect. I figured this was about as good as I
 could get with ascii characters, but decided to take it a bit further. Unicode
-provides 256 braille symbols consisting of all combinations of a 4x2 matrix of
+provides 256 braille symbols consisting of all permutations of a 2x4 matrix of
 dots. This is perfect for my purpose so I initially repeated strategy 3,
-Advanced Asciify with the braille characters. 
+Advanced Asciify with the braille characters.
 
 However, moving from ~60 ascii characters to 256 braille characters and testing
 all of them made the program much slower. I was able to solve this by only
 testing 8 braille characters (one for each dot position), combining the test
 results and performing a binary search to find the best fitting braille
-character. This was able to reduce my runtime on sample data from 25+ seconds
+character. This was able to reduce my runtime on test data from 25+ seconds
 per run to < 2 seconds. The resulting image is the same as the initial braillify
 strategy.
 
