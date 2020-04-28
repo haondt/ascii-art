@@ -5,6 +5,8 @@ from PIL import Image, ImageDraw, ImageFont
 from PIL import ImageEnhance
 import argparse
 
+invert = False
+
 # Terminology:
 # The program converts an nxm image to various ascii art forms of size axb.
 # The first step is to seperate the nxm pixels of the original image (hereby
@@ -86,14 +88,21 @@ def blockify(image):
 # draw the image using ascii characters. Simply finds the ascii character with
 # the closest average brightness
 def asciiify(im):
+	global invert
 	# Create dictionary mapping ascii characters to their average color
 	fnt = ImageFont.truetype('Noto Mono for Powerline.ttf',15)
 	charset = {}
 	for i in range(32,127):
-		img = Image.new('RGB', (10,17), color='white')
+		if invert:
+			img = Image.new('RGB', (10,17), color='white')
+		else:
+			img = Image.new('RGB', (10,17), color='black')
 		d = ImageDraw.Draw(img)
 		char = chr(i)
-		d.text((0,0), char, font=fnt, fill='black')
+		if invert:
+			d.text((0,0), char, font=fnt, fill='black')
+		else:
+			d.text((0,0), char, font=fnt, fill='white')
 		img = np.array(img)
 		charset[int(round(np.sum(img)/img.size))] = char
 
@@ -311,6 +320,7 @@ def _advanced_asciiify(image, fontname, char_list):
 	return outstr
 # Compare two images of the same shape
 def compare(img1, img2):
+	global invert
 	if len(img1) > len(img2):
 		img1 = img1[:len(img2)]
 	if len(img2) > len(img1):
@@ -326,7 +336,10 @@ def compare(img1, img2):
 	mse = s / img1.size
 
 	# multiplying the mean square error by -1 will invert the output
-	return -mse
+	if invert:
+		return -mse
+	else:
+		return mse
 
 # use pillow to change the input image to black and white pixels only before
 # processing
@@ -354,6 +367,7 @@ def preprocess_braillify(path, desired_width):
 
 
 def main():
+	global invert
 
 	# Set up command line parser
 	parser = argparse.ArgumentParser(description='Convert images to ascii art')
@@ -378,6 +392,8 @@ def main():
 	parser.add_argument('-P', '--preprocessed-braillify', action='store_true',
 		default=False, help='preprocess the image before braillifying it with \
 		a refined method')
+	parser.add_argument('-I', '--invert', action='store_true',
+		default=False, help='invert the output image')
 
 	args = parser.parse_args()
 	
@@ -385,6 +401,7 @@ def main():
 	path = args.i
 	desired_width = args.width
 	image = seperate_image(path, desired_width)
+	invert = args.invert
 
 	# Append generations to output depending on args
 	outstr = ''
