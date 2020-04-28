@@ -7,7 +7,7 @@ different font. Does not work on pngs.
 
 Usage: `python main.py -h`
 
-Requirements: `scikit-imag`, `numpy`, `Pillow`
+Requirements: `scikit-image`, `numpy`, `Pillow`
 
 ## Description
 
