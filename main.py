@@ -18,30 +18,33 @@ def seperate_image(path, desired_width, ratio=2):
 	# ratio=  character height / width
 
 	# load image into ndarray
-	image = io.imread(path)
+	image = np.array(io.imread(path))
+
 
 	# actual image height/width
 	height_over_width = len(image)/len(image[0])
 
-	# desired image height
-	desired_height = desired_width * height_over_width
-
-	# desired image height taking into account character ratio
-	desired_height = int(round(desired_height / ratio))
+	target_width = min(desired_width, len(image[0]))
+	target_height = int(round((target_width * height_over_width)/ratio))
+	grouped_cell_width = int(round(len(image[0]) / target_width))
+	grouped_cell_height = int(round(len(image) / target_height))
 
 	if type(image[0][0]) == np.ndarray:
 		# formula for grayscale
 		# gray = r*0.2125 + g*0.7154 + b*0.0721
-		consts = np.array([0.2125, 0.7154, 0.0721])
+		# zero out any columns past rgb (i.e. alpha channels)
+		consts = np.array([0.2125, 0.7154, 0.0721] + [0]*(len(image[0][0])-3))
 
 		# grayscaleify each pixel
 		image = np.tensordot(consts, image, (0,2))
 
 	# group blocks of subpixels in pixel groups
-	input_rows_per_output_row = len(image)/desired_height
-	input_cols_per_output_col = len(image[0])/desired_width
+	input_rows_per_output_row = len(image)/target_height
+	input_cols_per_output_col = len(image[0])/target_width
+
 	output_matrix = []
-	for output_row in range(desired_height):
+
+	for output_row in range(target_height):
 		out_row = []
 		input_row_start = int(round(output_row*input_rows_per_output_row))
 		input_row_end = int(round(input_row_start + input_rows_per_output_row))
